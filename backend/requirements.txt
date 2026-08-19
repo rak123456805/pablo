@@ -1,34 +1,34 @@
 # Core framework
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.6
 
 # Database
-sqlalchemy[asyncio]==2.0.36
-asyncpg==0.30.0
-alembic==1.13.3
-psycopg[binary]==3.2.3   # for alembic sync env (pre-built wheel for Python 3.13 Windows)
+sqlalchemy[asyncio]>=2.0.36
+asyncpg>=0.30.0
+alembic>=1.13.3
+psycopg[binary]>=3.2.3
 
 # Validation / config
-pydantic==2.9.2
-pydantic-settings==2.5.2
-email-validator==2.2.0
+pydantic>=2.9.2
+pydantic-settings>=2.5.2
+email-validator>=2.2.0
 
 # Auth
-python-jose[cryptography]==3.3.0
-bcrypt>=4.0.0           # used directly in security.py; passlib also depends on this
-passlib[bcrypt]==1.7.4
-python-multipart==0.0.12
+python-jose[cryptography]>=3.3.0
+bcrypt>=4.0.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.12
 
 # Image processing
-Pillow==10.4.0
+Pillow>=10.4.0
 
 # HTTP client (for health checks in tests)
-httpx==0.27.2
+httpx>=0.27.2
 
 # Testing
-pytest==8.3.3
-pytest-asyncio==0.24.0
-anyio==4.6.0
+pytest>=8.3.3
+pytest-asyncio>=0.24.0
+anyio>=4.6.0
 
 # Linting (dev)
-ruff==0.7.0
+ruff>=0.7.0

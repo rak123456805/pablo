@@ -31,6 +31,7 @@ Go to **Environment** tab in your Render service and add:
 
 | Key | Value |
 | :--- | :--- |
+| `PYTHON_VERSION` | `3.11.9` |
 | `DATABASE_URL` | `postgresql+asyncpg://neondb_owner:npg_2MBj1QyiREeN@ep-solitary-cake-ax18ax3w.c-4.us-east-2.aws.neon.tech/neondb?ssl=require` |
 | `DATABASE_SYNC_URL` | `postgresql+psycopg://neondb_owner:npg_2MBj1QyiREeN@ep-solitary-cake-ax18ax3w.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require` |
 | `STORAGE_BACKEND` | `supabase` |
