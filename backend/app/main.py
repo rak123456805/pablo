@@ -44,6 +44,12 @@ def create_app() -> FastAPI:
 
     app.include_router(router)
 
+    # Route alias for /catalog at root level as well as /api/v1/catalog
+    @app.get("/catalog", tags=["catalog"])
+    async def get_catalog_root():
+        from app.api.v1.catalog import get_catalog
+        return await get_catalog()
+
     @app.get("/health", tags=["health"])
     async def health(db: AsyncSession = Depends(get_db)):
         """Health check — verifies API is reachable."""
