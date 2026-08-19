@@ -114,13 +114,19 @@ export const ShowsListPage: React.FC = () => {
     setShowToDelete(show);
   };
 
+  const [deletedShowNotice, setDeletedShowNotice] = useState<string | null>(null);
+
   const handleConfirmDelete = async () => {
     if (!showToDelete) return;
     setIsDeleting(true);
+    const title = showToDelete.title;
     try {
       await api.deleteShow(showToDelete.id);
       setShowToDelete(null);
       refetchShows();
+      setDeletedShowNotice(
+        `"${title}" deleted from CMS. To remove it from the live Viewer, click Publish Catalogue.`
+      );
     } catch (err) {
       alert(err instanceof ApiError ? err.detail : 'Failed to delete show');
     } finally {
@@ -170,6 +176,36 @@ export const ShowsListPage: React.FC = () => {
           Create New Show
         </button>
       </div>
+
+      {/* Delete Notice / Publish Reminder Banner */}
+      {deletedShowNotice && (
+        <div className="p-4 bg-amber-950/90 border border-amber-800 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-200 text-xs shadow-lg animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+            <div>
+              <p className="font-bold text-slate-100">{deletedShowNotice}</p>
+              <p className="text-[11px] text-amber-300/80 mt-0.5">
+                Deletions and metadata changes in CMS do not update the child viewer until an Admin publishes the catalogue.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to="/publish"
+              className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-colors"
+            >
+              Publish Catalogue Now &rarr;
+            </Link>
+            <button
+              type="button"
+              onClick={() => setDeletedShowNotice(null)}
+              className="px-2 py-1 text-amber-400 hover:text-amber-200 font-bold"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Filter Bar */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
