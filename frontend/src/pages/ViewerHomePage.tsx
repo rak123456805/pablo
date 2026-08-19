@@ -17,7 +17,8 @@ export const ViewerHomePage: React.FC = () => {
   } = useQuery({
     queryKey: ['publishedCatalog'],
     queryFn: api.getCatalog,
-    staleTime: 30000,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   // Pick hero show dynamically (first available show in featured or series section)

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Send,
   AlertTriangle,
@@ -17,6 +17,7 @@ import type { PublishRun, ShowValidationEntry, EpisodeValidationEntry, Validatio
 
 export const PublishPage: React.FC = () => {
   const { isAdmin } = useAuth();
+  const queryClient = useQueryClient();
 
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccessMsg, setPublishSuccessMsg] = useState<string | null>(null);
@@ -63,6 +64,8 @@ export const PublishPage: React.FC = () => {
       );
       refetchReport();
       refetchRuns();
+      queryClient.invalidateQueries({ queryKey: ['publishedCatalog'] });
+      queryClient.invalidateQueries({ queryKey: ['catalogSearch'] });
     } catch (err) {
       if (err instanceof ApiError) {
         setPublishErrorMsg(err.detail);

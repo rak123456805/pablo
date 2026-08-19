@@ -56,6 +56,8 @@ export const ViewerSearchPage: React.FC = () => {
         language: queryLang || undefined,
         section: querySec || undefined,
       }),
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const activeFiltersCount = [queryCat, queryLang, querySec].filter(Boolean).length;
