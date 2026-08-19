@@ -24,7 +24,7 @@ Ensure your latest code is pushed to your GitHub repository.
 - **Root Directory**: Leave blank or set to `backend`
 - **Runtime**: `Python 3`
 - **Build Command**: `pip install -r backend/requirements.txt`
-- **Start Command**: `cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- **Start Command**: `cd backend && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 
 ### Step 4: Add Environment Variables in Render Dashboard
 Go to **Environment** tab in your Render service and add:

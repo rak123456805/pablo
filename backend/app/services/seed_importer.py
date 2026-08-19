@@ -236,7 +236,7 @@ async def import_seed_file(
         _detect_row_anomalies(row, idx, ep_id, show_title, result)
 
     # ── Commit everything ─────────────────────────────────────────────────────
-    await session.flush()
+    await session.commit()
     return result
 
 
