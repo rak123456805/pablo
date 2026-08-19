@@ -35,10 +35,10 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # ── Seeded users (created by seed script) ────────────────────────
-    ADMIN_EMAIL: str = "admin@peblo.tv"
-    ADMIN_PASSWORD: str = "adminpassword123"
-    EDITOR_EMAIL: str = "editor@peblo.tv"
-    EDITOR_PASSWORD: str = "editorpassword123"
+    ADMIN_EMAIL: str = "admin@peblo.local"
+    ADMIN_PASSWORD: str = "admin123"
+    EDITOR_EMAIL: str = "editor@peblo.local"
+    EDITOR_PASSWORD: str = "editor123"
 
     # ── Storage ───────────────────────────────────────────────────────
     STORAGE_BACKEND: str = "local"  # local | minio | r2

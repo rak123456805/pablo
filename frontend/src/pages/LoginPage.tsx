@@ -8,8 +8,8 @@ export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('admin@peblo.tv');
-  const [password, setPassword] = useState('adminpass');
+  const [email, setEmail] = useState('admin@peblo.local');
+  const [password, setPassword] = useState('admin123');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -35,11 +35,11 @@ export const LoginPage: React.FC = () => {
 
   const setCredentials = (role: 'admin' | 'editor') => {
     if (role === 'admin') {
-      setEmail('admin@peblo.tv');
-      setPassword('adminpass');
+      setEmail('admin@peblo.local');
+      setPassword('admin123');
     } else {
-      setEmail('editor@peblo.tv');
-      setPassword('editorpass');
+      setEmail('editor@peblo.local');
+      setPassword('editor123');
     }
   };
 
@@ -52,7 +52,7 @@ export const LoginPage: React.FC = () => {
             <Tv className="w-6 h-6" />
           </div>
           <h1 className="text-2xl font-black text-slate-100 tracking-tight">Peblo TV CMS</h1>
-          <p className="text-xs text-slate-400">Sign in to manage kids shows, episodes, and catalogue publishing.</p>
+          <p className="text-xs text-slate-400">Content Management Portal — Sign in to manage content & publishing.</p>
         </div>
 
         {/* Form */}
@@ -72,6 +72,7 @@ export const LoginPage: React.FC = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="email@peblo.local"
                 required
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-sky-500"
               />
@@ -86,6 +87,7 @@ export const LoginPage: React.FC = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
                 required
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-sky-500"
               />
@@ -97,32 +99,34 @@ export const LoginPage: React.FC = () => {
             disabled={isSubmitting}
             className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-sky-950 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign In to CMS'}
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign in to CMS'}
           </button>
         </form>
 
-        {/* Quick Fill Buttons for Testing */}
-        <div className="pt-4 border-t border-slate-800 space-y-2">
-          <p className="text-[11px] font-medium text-slate-400 text-center">Quick Login Presets</p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setCredentials('admin')}
-              className="flex items-center justify-center gap-1.5 p-2 bg-purple-950/50 hover:bg-purple-900/50 border border-purple-800/60 rounded-xl text-purple-300 text-xs font-semibold transition-colors"
-            >
-              <Shield className="w-3.5 h-3.5" />
-              Admin
-            </button>
-            <button
-              type="button"
-              onClick={() => setCredentials('editor')}
-              className="flex items-center justify-center gap-1.5 p-2 bg-blue-950/50 hover:bg-blue-900/50 border border-blue-800/60 rounded-xl text-blue-300 text-xs font-semibold transition-colors"
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              Editor
-            </button>
+        {/* Demo Accounts (Development Only) */}
+        {import.meta.env.DEV && (
+          <div className="pt-4 border-t border-slate-800 space-y-2">
+            <p className="text-[11px] font-medium text-slate-400 text-center">Demo Credentials (Development Only)</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setCredentials('admin')}
+                className="flex items-center justify-center gap-1.5 p-2 bg-purple-950/50 hover:bg-purple-900/50 border border-purple-800/60 rounded-xl text-purple-300 text-xs font-semibold transition-colors"
+              >
+                <Shield className="w-3.5 h-3.5" />
+                Admin (admin123)
+              </button>
+              <button
+                type="button"
+                onClick={() => setCredentials('editor')}
+                className="flex items-center justify-center gap-1.5 p-2 bg-blue-950/50 hover:bg-blue-900/50 border border-blue-800/60 rounded-xl text-blue-300 text-xs font-semibold transition-colors"
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                Editor (editor123)
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

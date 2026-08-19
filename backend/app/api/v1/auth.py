@@ -15,6 +15,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/token", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse)
 async def login(body: TokenRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
@@ -29,7 +30,11 @@ async def login(body: TokenRequest, db: AsyncSession = Depends(get_db)):
             detail="Account is inactive.",
         )
     token = create_access_token(subject=user.email, role=user.role)
-    return TokenResponse(access_token=token)
+    return TokenResponse(
+        access_token=token,
+        token_type="bearer",
+        user={"email": user.email, "role": user.role},
+    )
 
 
 @router.get("/me", response_model=UserOut)

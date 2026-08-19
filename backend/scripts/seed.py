@@ -35,8 +35,9 @@ async def create_users(session: AsyncSession) -> None:
         (settings.EDITOR_EMAIL, settings.EDITOR_PASSWORD, "editor"),
     ]
     for email, password, role in users_to_create:
-        existing = await session.execute(select(User).where(User.email == email))
-        if existing.scalar_one_or_none() is None:
+        result = await session.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
+        if user is None:
             user = User(
                 email=email,
                 hashed_password=hash_password(password),
@@ -45,7 +46,9 @@ async def create_users(session: AsyncSession) -> None:
             session.add(user)
             print(f"  Created user: {email} ({role})")
         else:
-            print(f"  User already exists: {email}")
+            user.hashed_password = hash_password(password)
+            user.role = role
+            print(f"  Updated user: {email} ({role})")
 
 
 async def main() -> None:

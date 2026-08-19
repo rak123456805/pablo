@@ -52,9 +52,12 @@ Services exposed:
 
 *Note: Database migrations (`alembic upgrade head`) and seed data import (`python -m app.scripts.seed`) execute automatically on API container startup.*
 
-### Test Login Credentials
-- **Admin**: `admin@peblo.tv` / `adminpass` (Full CRUD + Publishing privileges)
-- **Editor**: `editor@peblo.tv` / `editorpass` (CRUD & Validation privileges; Publishing restricted)
+### Demo Credentials
+
+- **Admin**: `admin@peblo.local` / `admin123` (Full CRUD + Publishing privileges)
+- **Editor**: `editor@peblo.local` / `editor123` (CRUD & Validation privileges; Publishing restricted)
+
+> **Authentication Scope**: Authentication is intentionally limited to internal CMS users (`editor` / `admin` roles). Public registration / signup is deliberately omitted per challenge design; production environments would manage internal credentials via secure secret stores or organization Identity/SSO.
 
 ---
 

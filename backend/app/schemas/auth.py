@@ -10,13 +10,19 @@ from pydantic import BaseModel, EmailStr, field_validator
 
 
 class TokenRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
+
+
+class UserPayload(BaseModel):
+    email: str
+    role: str
 
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    user: UserPayload | None = None
 
 
 class UserOut(BaseModel):
