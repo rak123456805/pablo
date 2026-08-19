@@ -32,9 +32,9 @@ export const Navbar: React.FC = () => {
   return (
     <header className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand */}
+        {/* Brand Logo - Links to Viewer */}
         <div className="flex items-center gap-8">
-          <Link to="/shows" className="flex items-center gap-2.5 group">
+          <Link to="/viewer" className="flex items-center gap-2.5 group" title="Open Peblo TV Viewer">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-sky-900/40 group-hover:scale-105 transition-transform">
               <Tv className="w-5 h-5" />
             </div>

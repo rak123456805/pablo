@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Tv, Shield, UserCheck, Key, Mail, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api, ApiError } from '../api/client';
@@ -46,12 +46,14 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4">
       <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-8 shadow-2xl space-y-6">
-        {/* Header */}
+        {/* Header Logo - Links to /viewer */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-500 flex items-center justify-center text-white mx-auto shadow-xl shadow-sky-950">
-            <Tv className="w-6 h-6" />
-          </div>
-          <h1 className="text-2xl font-black text-slate-100 tracking-tight">Peblo TV CMS</h1>
+          <Link to="/viewer" className="inline-block group" title="Open Peblo TV Viewer">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-500 flex items-center justify-center text-white mx-auto shadow-xl shadow-sky-950 group-hover:scale-105 transition-transform">
+              <Tv className="w-6 h-6" />
+            </div>
+            <h1 className="text-2xl font-black text-slate-100 tracking-tight mt-2">Peblo TV CMS</h1>
+          </Link>
           <p className="text-xs text-slate-400">Content Operations — Enter your credentials to sign in.</p>
         </div>
 
