@@ -88,6 +88,10 @@ export const ArtworkUploadSlot: React.FC<ArtworkUploadSlotProps> = ({
       if (!resp.ok) {
         throw new Error(`Failed to fetch test asset: ${filename}`);
       }
+      const contentType = resp.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        throw new Error(`Test asset '${filename}' not found in static assets.`);
+      }
       const blob = await resp.blob();
       const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
       await handleUploadFile(file);
