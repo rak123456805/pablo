@@ -186,3 +186,4 @@ async def delete_episode(
     if episode is None:
         raise HTTPException(status_code=404, detail="Episode not found.")
     await db.delete(episode)
+    await db.commit()

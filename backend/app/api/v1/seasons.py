@@ -74,3 +74,4 @@ async def delete_season(
     if season is None:
         raise HTTPException(status_code=404, detail="Season not found.")
     await db.delete(season)
+    await db.commit()

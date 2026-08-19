@@ -128,3 +128,4 @@ async def delete_show(
     if show is None:
         raise HTTPException(status_code=404, detail="Show not found.")
     await db.delete(show)
+    await db.commit()
