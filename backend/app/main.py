@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
-from app.api.v1.router import router
+from app.api.v1.router import router, unprefixed_router
 from app.config import get_settings
 from app.database import get_db
 from app.models import User
@@ -46,23 +46,7 @@ def create_app() -> FastAPI:
         app.mount("/test_assets", StaticFiles(directory=str(test_assets_path)), name="test_assets")
 
     app.include_router(router)
-
-    # Route aliases at root level for Vercel deployment compatibility
-    @app.get("/catalog", tags=["catalog"])
-    async def get_catalog_root(db: AsyncSession = Depends(get_db)):
-        from app.api.v1.catalog import get_catalog
-        return await get_catalog(db)
-
-    @app.post("/auth/token", tags=["auth"])
-    @app.post("/auth/login", tags=["auth"])
-    async def login_root(body: TokenRequest, db: AsyncSession = Depends(get_db)):
-        from app.api.v1.auth import login
-        return await login(body, db)
-
-    @app.get("/auth/me", tags=["auth"])
-    async def me_root(current_user: User = Depends(get_current_user)):
-        from app.api.v1.auth import me
-        return await me(current_user)
+    app.include_router(unprefixed_router)
 
     @app.get("/health", tags=["health"])
     async def health(db: AsyncSession = Depends(get_db)):
