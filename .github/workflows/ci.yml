@@ -1,0 +1,122 @@
+name: Peblo TV Mini CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-lint-and-test:
+    name: Backend Lint & Pytest Suite
+    runs-on: ubuntu-latest
+
+    services:
+      db_test:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: peblo_test
+          POSTGRES_USER: peblo
+          POSTGRES_PASSWORD: peblodev
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install flake8 pytest pytest-asyncio
+
+      - name: Backend Lint Check
+        run: |
+          python -m flake8 backend/app backend/tests --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Run Pytest Suite
+        env:
+          DB_TEST_URL: postgresql+asyncpg://peblo:peblodev@localhost:5433/peblo_test
+          STORAGE_BACKEND: local
+          LOCAL_STORAGE_PATH: ./backend/tests/fixtures/storage
+          LOCAL_STORAGE_BASE_URL: http://testserver/static
+        run: |
+          cd backend
+          python -m pytest -v
+
+  frontend-lint-and-build:
+    name: Frontend Typecheck & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Frontend TypeScript & Lint Check
+        run: |
+          cd frontend
+          npx tsc -b
+
+      - name: Build Frontend Production Bundle
+        run: |
+          cd frontend
+          npm run build
+
+  docker-build:
+    name: Verify Docker Image Buildability
+    runs-on: ubuntu-latest
+    needs: [backend-lint-and-test, frontend-lint-and-build]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Container Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          tags: peblo-api:latest
+
+      - name: Build Frontend Container Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: false
+          tags: peblo-frontend:latest
+
+  # Documentation note on Promotion to Production:
+  # In a production pipeline:
+  # 1. On merge to `main`, `docker/build-push-action` authenticates to GitHub Container Registry (ghcr.io)
+  #    or AWS ECR / Cloudflare R2 / Docker Hub using secrets (GHCR_TOKEN).
+  # 2. Tagged release images (e.g., ghcr.io/peblo/api:${{ github.sha }}) are pushed to the registry.
+  # 3. A deployment trigger (e.g., ArgoCD, AWS ECS deployment, or Helm upgrade) pulls the immutable SHA image
+  #    and performs zero-downtime rolling updates on the API and NGINX frontend containers.
