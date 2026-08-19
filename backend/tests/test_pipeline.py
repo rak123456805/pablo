@@ -539,8 +539,9 @@ async def test_deterministic_ordering(db):
         await db.flush()
 
     run_id = uuid.uuid4()
-    catalog1 = await build_catalog(db, run_id)
-    catalog2 = await build_catalog(db, run_id)
+    ts = "2026-01-01T00:00:00Z"
+    catalog1 = await build_catalog(db, run_id, generated_at=ts)
+    catalog2 = await build_catalog(db, run_id, generated_at=ts)
 
     json1 = catalog1.model_dump_json()
     json2 = catalog2.model_dump_json()

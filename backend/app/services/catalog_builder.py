@@ -40,9 +40,14 @@ from app.schemas.operations import (
 from app.services.artwork_storage import get_storage
 
 
-async def build_catalog(db: AsyncSession, run_id: uuid.UUID) -> CatalogOut:
+async def build_catalog(
+    db: AsyncSession,
+    run_id: uuid.UUID,
+    generated_at: str | None = None,
+) -> CatalogOut:
     """Build the full catalogue JSON from the current published DB state."""
     storage = get_storage()
+    timestamp = generated_at or datetime.now(timezone.utc).isoformat()
 
     # ── Load published shows ──────────────────────────────────────────────────
     shows_result = await db.execute(
@@ -52,7 +57,7 @@ async def build_catalog(db: AsyncSession, run_id: uuid.UUID) -> CatalogOut:
 
     if not published_shows:
         return CatalogOut(
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=timestamp,
             publish_run_id=str(run_id),
             sections={s: [] for s in SECTIONS},
         )
@@ -181,7 +186,7 @@ async def build_catalog(db: AsyncSession, run_id: uuid.UUID) -> CatalogOut:
         sections_dict[show.section].append(show_entry)
 
     return CatalogOut(
-        generated_at=datetime.now(timezone.utc).isoformat(),
+        generated_at=timestamp,
         publish_run_id=str(run_id),
         sections=sections_dict,
     )

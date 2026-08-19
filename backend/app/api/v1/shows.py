@@ -113,6 +113,7 @@ async def update_show(
         setattr(show, field, value)
 
     await db.flush()
+    await db.refresh(show)
     return show
 
 

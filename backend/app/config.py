@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     EDITOR_PASSWORD: str = "editor123"
 
     # ── Storage ───────────────────────────────────────────────────────
-    STORAGE_BACKEND: str = "local"  # local | minio | r2
+    STORAGE_BACKEND: str = "local"  # local | minio | r2 | b2 | supabase
     LOCAL_STORAGE_PATH: str = "./storage"
     LOCAL_STORAGE_BASE_URL: str = "http://localhost:8000/static"
 
@@ -54,6 +54,17 @@ class Settings(BaseSettings):
     R2_ACCESS_KEY_ID: str = ""
     R2_SECRET_ACCESS_KEY: str = ""
     R2_BUCKET: str = ""
+
+    B2_KEY_ID: str = ""
+    B2_APPLICATION_KEY: str = ""
+    B2_BUCKET_NAME: str = ""
+    B2_ENDPOINT_URL: str = ""
+
+    SUPABASE_PROJECT_ID: str = ""
+    SUPABASE_SERVICE_ROLE_KEY: str = ""
+    SUPABASE_S3_ACCESS_KEY: str = ""
+    SUPABASE_S3_SECRET_KEY: str = ""
+    SUPABASE_BUCKET: str = "peblo"
 
     # ── Application ───────────────────────────────────────────────────
     APP_NAME: str = "Peblo TV API"

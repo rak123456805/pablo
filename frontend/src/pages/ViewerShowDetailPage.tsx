@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
-  Play,
   Clock,
   Sparkles,
 } from 'lucide-react';
@@ -146,14 +145,14 @@ export const ViewerShowDetailPage: React.FC = () => {
         <div className="p-6 bg-amber-950/40 border border-amber-800/80 rounded-3xl space-y-3 shadow-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
-              <Play className="w-4 h-4 fill-amber-300" /> Playing: {activeEpisode.title}
+              <Sparkles className="w-4 h-4 text-amber-400" /> Episode Card: {activeEpisode.title}
             </div>
             <button
               type="button"
               onClick={() => setActiveEpisode(null)}
               className="text-xs text-amber-400 hover:text-amber-200 underline font-medium"
             >
-              Close Player
+              Close Details
             </button>
           </div>
           <div className="aspect-video bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-center relative overflow-hidden">
@@ -164,9 +163,17 @@ export const ViewerShowDetailPage: React.FC = () => {
               fallbackTitle={activeEpisode.title}
               className="w-full h-full object-cover rounded-none"
             />
-            <div className="absolute inset-0 bg-slate-950/40 flex items-center justify-center">
-              <div className="w-16 h-16 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center shadow-2xl">
-                <Play className="w-8 h-8 fill-slate-950 ml-1" />
+            <div className="absolute bottom-3 left-3 right-3 bg-slate-950/80 backdrop-blur-sm p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-slate-100">{activeEpisode.title}</span>
+                <span className="text-[11px] text-slate-400 block font-mono">Content Group: {activeEpisode.content_group}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {activeEpisode.languages.map((l) => (
+                  <span key={l} className="bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded uppercase border border-amber-500/30">
+                    {l}
+                  </span>
+                ))}
               </div>
             </div>
           </div>

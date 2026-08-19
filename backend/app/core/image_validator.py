@@ -145,7 +145,17 @@ def validate_artwork(data: bytes, kind: str, content_type: str) -> tuple[int, in
     img = _detect_image(data, kind)
     width, height = img.size
 
-    # ── 3. Aspect ratio check ─────────────────────────────────────────────────
+    # ── 3. Dimensions check (e.g. reject tiny images like thumb_tiny.jpg 160x90)
+    factor = 0.25 if kind == "banner" else 0.3
+    min_w = int(target_w * factor)
+    min_h = int(target_h * factor)
+    if width < min_w or height < min_h:
+        raise ImageValidationError(
+            f"{label} is {width}×{height}, which is too small. "
+            f"{label}s must be approximately {target_w}×{target_h} pixels."
+        )
+
+    # ── 4. Aspect ratio check ─────────────────────────────────────────────────
     if not _aspect_ok(width, height, w_parts, h_parts):
         raise ImageValidationError(
             f"{label} is {width}×{height}, but {label.lower()}s must use a {aspect_str} "

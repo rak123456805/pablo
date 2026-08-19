@@ -142,7 +142,7 @@ export const ViewerHomePage: React.FC = () => {
                 to={`/viewer/shows/${featuredHeroShow.slug}`}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs rounded-2xl shadow-xl shadow-orange-950/60 transition-transform active:scale-95"
               >
-                <Play className="w-4 h-4 fill-slate-950" /> Watch Stories
+                <Play className="w-4 h-4 fill-slate-950" /> Explore Episodes
               </Link>
             </div>
           </div>

@@ -1,12 +1,16 @@
 """FastAPI application factory."""
 from __future__ import annotations
 
-from fastapi import FastAPI
+from pathlib import Path
+
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.router import router
 from app.config import get_settings
+from app.database import get_db
 
 
 def create_app() -> FastAPI:
@@ -33,18 +37,20 @@ def create_app() -> FastAPI:
     storage_path.mkdir(parents=True, exist_ok=True)
     app.mount("/static", StaticFiles(directory=str(storage_path)), name="static")
 
+    import os
+    test_assets_path = Path("challenge_assets")
+    if test_assets_path.exists():
+        app.mount("/test_assets", StaticFiles(directory=str(test_assets_path)), name="test_assets")
+
     app.include_router(router)
 
     @app.get("/health", tags=["health"])
-    async def health():
+    async def health(db: AsyncSession = Depends(get_db)):
         """Health check — verifies API is reachable."""
         from sqlalchemy import text
-        from app.database import get_session_factory
         db_status = "ok"
         try:
-            factory = get_session_factory()
-            async with factory() as session:
-                await session.execute(text("SELECT 1"))
+            await db.execute(text("SELECT 1"))
         except Exception as exc:
             db_status = f"error: {exc}"
 

@@ -182,6 +182,92 @@ class MinioStorage(StorageBackend):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Supabase Storage backend (via REST API)
+# ─────────────────────────────────────────────────────────────────────────────
+
+import json
+import urllib.request
+
+
+class SupabaseStorage(StorageBackend):
+    """
+    Stores files in Supabase Storage using the standard REST API.
+    Supports public bucket storage, atomic replace (via move), and public URLs.
+    """
+
+    def __init__(self, project_id: str, service_role_key: str, bucket: str):
+        self.project_id = project_id
+        self.service_role_key = service_role_key
+        self.bucket = bucket
+        self.base_url = f"https://{project_id}.supabase.co/storage/v1"
+        self.public_base_url = f"{self.base_url}/object/public/{bucket}"
+        self.headers = {
+            "Authorization": f"Bearer {service_role_key}",
+            "apikey": service_role_key,
+        }
+
+    async def put(self, key: str, data: bytes, content_type: str) -> str:
+        url = f"{self.base_url}/object/{self.bucket}/{key}"
+        headers = {
+            **self.headers,
+            "Content-Type": content_type,
+            "x-upsert": "true",
+        }
+        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+        with urllib.request.urlopen(req) as resp:
+            pass
+        return self.public_url(key)
+
+    async def get(self, key: str) -> bytes:
+        url = f"{self.base_url}/object/{self.bucket}/{key}"
+        req = urllib.request.Request(url, headers=self.headers, method="GET")
+        with urllib.request.urlopen(req) as resp:
+            return resp.read()
+
+    async def delete(self, key: str) -> None:
+        url = f"{self.base_url}/object/{self.bucket}/{key}"
+        req = urllib.request.Request(url, headers=self.headers, method="DELETE")
+        try:
+            with urllib.request.urlopen(req):
+                pass
+        except Exception:
+            pass
+
+    async def atomic_replace(self, src_key: str, dst_key: str) -> None:
+        # Move object src -> dst in Supabase storage
+        url = f"{self.base_url}/object/move"
+        payload = json.dumps({
+            "bucketId": self.bucket,
+            "sourceKey": src_key,
+            "destinationKey": dst_key,
+        }).encode("utf-8")
+        headers = {
+            **self.headers,
+            "Content-Type": "application/json",
+        }
+        req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
+        try:
+            with urllib.request.urlopen(req):
+                pass
+        except Exception:
+            data = await self.get(src_key)
+            await self.put(dst_key, data, "application/octet-stream")
+            await self.delete(src_key)
+
+    def public_url(self, key: str) -> str:
+        return f"{self.public_base_url}/{key}"
+
+    def exists(self, key: str) -> bool:
+        url = f"{self.base_url}/object/info/public/{self.bucket}/{key}"
+        req = urllib.request.Request(url, headers=self.headers, method="GET")
+        try:
+            with urllib.request.urlopen(req):
+                return True
+        except Exception:
+            return False
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Factory
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -201,13 +287,25 @@ def get_storage() -> StorageBackend:
                 root=s.LOCAL_STORAGE_PATH,
                 base_url=s.LOCAL_STORAGE_BASE_URL,
             )
-        elif backend in ("minio", "r2"):
+        elif backend == "supabase":
+            _storage_instance = SupabaseStorage(
+                project_id=s.SUPABASE_PROJECT_ID,
+                service_role_key=s.SUPABASE_SERVICE_ROLE_KEY,
+                bucket=s.SUPABASE_BUCKET,
+            )
+        elif backend in ("minio", "r2", "b2"):
             if backend == "r2":
                 endpoint = f"https://{s.R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
                 access_key = s.R2_ACCESS_KEY_ID
                 secret_key = s.R2_SECRET_ACCESS_KEY
                 bucket = s.R2_BUCKET
                 public_base = f"https://pub-{s.R2_ACCOUNT_ID}.r2.dev"
+            elif backend == "b2":
+                endpoint = s.B2_ENDPOINT_URL
+                access_key = s.B2_KEY_ID
+                secret_key = s.B2_APPLICATION_KEY
+                bucket = s.B2_BUCKET_NAME
+                public_base = f"{s.B2_ENDPOINT_URL.rstrip('/')}/{s.B2_BUCKET_NAME}"
             else:
                 endpoint = s.MINIO_ENDPOINT
                 access_key = s.MINIO_ACCESS_KEY

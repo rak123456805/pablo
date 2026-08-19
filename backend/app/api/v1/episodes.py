@@ -171,6 +171,7 @@ async def update_episode(
         setattr(episode, field, value)
 
     await db.flush()
+    await db.refresh(episode)
     return episode
 
 
