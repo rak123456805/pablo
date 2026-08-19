@@ -11,7 +11,6 @@ from app.api.deps import require_editor
 from app.core.image_validator import (
     ImageValidationError,
     detected_content_type,
-    detected_extension,
     validate_artwork,
 )
 from app.database import get_db
@@ -24,10 +23,11 @@ router = APIRouter(prefix="/artwork", tags=["artwork"])
 
 
 @router.post("", response_model=ArtworkOut, status_code=status.HTTP_201_CREATED)
+@router.post("s", response_model=ArtworkOut, status_code=status.HTTP_201_CREATED)
 async def upload_artwork(
     kind: str = Form(..., description="poster | banner | thumbnail"),
     owner_type: str = Form(..., description="show | episode"),
-    owner_id: uuid.UUID = Form(...),
+    owner_id: str = Form(...),
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
     _user: User = Depends(require_editor),
@@ -46,15 +46,32 @@ async def upload_artwork(
             detail="owner_type must be 'show' or 'episode'.",
         )
 
+    # Parse owner_id string as UUID or look up by external_id / slug
+    owner_uuid: uuid.UUID | None = None
+    try:
+        owner_uuid = uuid.UUID(owner_id)
+    except ValueError:
+        pass
+
     # Verify owner exists
     if owner_type == "show":
-        result = await db.execute(select(Show).where(Show.id == owner_id))
-        if result.scalar_one_or_none() is None:
+        if owner_uuid:
+            result = await db.execute(select(Show).where(Show.id == owner_uuid))
+        else:
+            result = await db.execute(select(Show).where(Show.slug == owner_id))
+        show_obj = result.scalar_one_or_none()
+        if show_obj is None:
             raise HTTPException(status_code=404, detail="Show not found.")
+        owner_uuid = show_obj.id
     else:
-        result = await db.execute(select(Episode).where(Episode.id == owner_id))
-        if result.scalar_one_or_none() is None:
+        if owner_uuid:
+            result = await db.execute(select(Episode).where(Episode.id == owner_uuid))
+        else:
+            result = await db.execute(select(Episode).where(Episode.external_id == owner_id))
+        ep_obj = result.scalar_one_or_none()
+        if ep_obj is None:
             raise HTTPException(status_code=404, detail="Episode not found.")
+        owner_uuid = ep_obj.id
 
     # Read file bytes
     data = await file.read()
@@ -71,7 +88,7 @@ async def upload_artwork(
     existing = await db.execute(
         select(Artwork).where(
             Artwork.owner_type == owner_type,
-            Artwork.owner_id == owner_id,
+            Artwork.owner_id == owner_uuid,
             Artwork.kind == kind,
         )
     )
@@ -79,41 +96,37 @@ async def upload_artwork(
 
     storage = get_storage()
 
-    # Build storage key using actual extension detected from bytes
-    storage_key = f"{owner_type}s/{owner_id}/{kind}.{detected_extension(data)}"
+    if existing_art is not None:
+        try:
+            await storage.delete(existing_art.storage_key)
+        except Exception:
+            pass  # Best effort storage cleanup
+        await db.delete(existing_art)
 
-    # Upload to storage
+    # Save to storage backend (Supabase or Local File Storage)
+    art_id = uuid.uuid4()
+    extension = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}.get(content_type, "jpg")
+    storage_key = f"{owner_type}s/{owner_uuid}/{kind}.{extension}"
+
     await storage.put(storage_key, data, content_type)
 
-    if existing_art:
-        # Remove old file if key changed
-        if existing_art.storage_key != storage_key:
-            await storage.delete(existing_art.storage_key)
-        # Update record
-        existing_art.storage_key = storage_key
-        existing_art.size_bytes = len(data)
-        existing_art.width_px = width
-        existing_art.height_px = height
-        existing_art.content_type = content_type
-        artwork = existing_art
-    else:
-        artwork = Artwork(
-            owner_type=owner_type,
-            owner_id=owner_id,
-            kind=kind,
-            storage_key=storage_key,
-            size_bytes=len(data),
-            width_px=width,
-            height_px=height,
-            content_type=content_type,
-        )
-        db.add(artwork)
+    artwork = Artwork(
+        id=art_id,
+        owner_type=owner_type,
+        owner_id=owner_uuid,
+        kind=kind,
+        storage_key=storage_key,
+        size_bytes=len(data),
+        width_px=width,
+        height_px=height,
+        content_type=content_type,
+    )
+    db.add(artwork)
+    await db.commit()
+    await db.refresh(artwork)
 
-    await db.flush()
-
-    # Build response with URL
     out = ArtworkOut.model_validate(artwork)
-    out.url = storage.public_url(storage_key)
+    out.url = storage.public_url(artwork.storage_key)
     return out
 
 
@@ -129,8 +142,10 @@ async def delete_artwork(
         raise HTTPException(status_code=404, detail="Artwork not found.")
 
     storage = get_storage()
-    await storage.delete(artwork.storage_key)
+    try:
+        await storage.delete(artwork.storage_key)
+    except Exception:
+        pass  # Best effort
+
     await db.delete(artwork)
-
-
-# _ext() removed — replaced by detected_extension() from image_validator.
+    await db.commit()
