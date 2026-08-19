@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
@@ -12,14 +12,12 @@ import {
   UserCheck,
   Send,
   Film,
-  RefreshCw,
   BookOpen,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { user, logout, login, isAdmin } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
 
   // Fetch validation report summary for top-bar status indicator
   const { data: valReport } = useQuery({
@@ -28,18 +26,6 @@ export const Navbar: React.FC = () => {
     refetchInterval: 10000,
     enabled: !!user,
   });
-
-  const handleQuickLogin = async (role: 'admin' | 'editor') => {
-    try {
-      const email = role === 'admin' ? 'admin@peblo.local' : 'editor@peblo.local';
-      const password = role === 'admin' ? 'admin123' : 'editor123';
-      const res = await api.login(email, password);
-      await login(res.access_token);
-      navigate('/shows');
-    } catch (err) {
-      alert(`Login as ${role} failed. Make sure backend and seed data are running.`);
-    }
-  };
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
@@ -90,7 +76,7 @@ export const Navbar: React.FC = () => {
               )}
 
               <Link
-                to="/admin/guide"
+                to={isAdmin ? '/admin/guide/admin' : '/admin/guide/editor'}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   isActive('/admin/guide') || isActive('/guide')
                     ? 'bg-slate-800 text-amber-300 border border-amber-800/60 shadow-sm'
@@ -98,7 +84,7 @@ export const Navbar: React.FC = () => {
                 }`}
               >
                 <BookOpen className="w-4 h-4 text-amber-400" />
-                Guide
+                {isAdmin ? 'Admin Guide' : 'Editor Guide'}
               </Link>
             </nav>
           )}
@@ -145,17 +131,6 @@ export const Navbar: React.FC = () => {
                     {isAdmin ? <Shield className="w-3 h-3 text-purple-400" /> : <UserCheck className="w-3 h-3 text-blue-400" />}
                     {user.role}
                   </span>
-
-                  {/* Quick role toggle */}
-                  <button
-                    type="button"
-                    onClick={() => handleQuickLogin(isAdmin ? 'editor' : 'admin')}
-                    className="text-[10px] text-sky-400 hover:text-sky-300 underline font-mono flex items-center gap-0.5"
-                    title={`Switch session to ${isAdmin ? 'Editor' : 'Admin'}`}
-                  >
-                    <RefreshCw className="w-2.5 h-2.5" />
-                    Switch to {isAdmin ? 'Editor' : 'Admin'}
-                  </button>
                 </div>
               </div>
 
@@ -170,20 +145,12 @@ export const Navbar: React.FC = () => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('editor')}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 transition-colors"
+              <Link
+                to="/login"
+                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl shadow-md transition-colors"
               >
-                Editor Login
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin')}
-                className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium rounded-lg shadow-sm transition-colors"
-              >
-                Admin Login
-              </button>
+                Sign In
+              </Link>
             </div>
           )}
         </div>
