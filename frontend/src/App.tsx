@@ -11,6 +11,7 @@ import { PublishPage } from './pages/PublishPage';
 import { ViewerHomePage } from './pages/ViewerHomePage';
 import { ViewerSearchPage } from './pages/ViewerSearchPage';
 import { ViewerShowDetailPage } from './pages/ViewerShowDetailPage';
+import { GuidePage } from './pages/GuidePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -78,6 +79,38 @@ export const AppLayout: React.FC = () => {
             element={
               <ProtectedRoute>
                 <PublishPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/guide"
+            element={
+              <ProtectedRoute>
+                <GuidePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/guide/editor"
+            element={
+              <ProtectedRoute>
+                <GuidePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/guide/admin"
+            element={
+              <ProtectedRoute>
+                <GuidePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/guide"
+            element={
+              <ProtectedRoute>
+                <GuidePage />
               </ProtectedRoute>
             }
           />

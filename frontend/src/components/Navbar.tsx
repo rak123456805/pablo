@@ -13,6 +13,7 @@ import {
   Send,
   Film,
   RefreshCw,
+  BookOpen,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -30,8 +31,8 @@ export const Navbar: React.FC = () => {
 
   const handleQuickLogin = async (role: 'admin' | 'editor') => {
     try {
-      const email = role === 'admin' ? 'admin@peblo.tv' : 'editor@peblo.tv';
-      const password = role === 'admin' ? 'adminpass' : 'editorpass';
+      const email = role === 'admin' ? 'admin@peblo.local' : 'editor@peblo.local';
+      const password = role === 'admin' ? 'admin123' : 'editor123';
       const res = await api.login(email, password);
       await login(res.access_token);
       navigate('/shows');
@@ -59,12 +60,12 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* Navigation Links */}
+          {/* Role-based Navigation Links */}
           {user && (
             <nav className="flex items-center gap-1">
               <Link
                 to="/shows"
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   isActive('/shows')
                     ? 'bg-sky-950/90 text-sky-300 border border-sky-800/80 shadow-sm'
                     : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/60'
@@ -74,16 +75,30 @@ export const Navbar: React.FC = () => {
                 Shows & Episodes
               </Link>
 
+              {isAdmin && (
+                <Link
+                  to="/publish"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    isActive('/publish')
+                      ? 'bg-purple-950/90 text-purple-300 border border-purple-800/80 shadow-sm'
+                      : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/60'
+                  }`}
+                >
+                  <Send className="w-4 h-4" />
+                  Publishing Room
+                </Link>
+              )}
+
               <Link
-                to="/publish"
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  isActive('/publish')
-                    ? 'bg-sky-950/90 text-sky-300 border border-sky-800/80 shadow-sm'
+                to="/admin/guide"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  isActive('/admin/guide') || isActive('/guide')
+                    ? 'bg-slate-800 text-amber-300 border border-amber-800/60 shadow-sm'
                     : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/60'
                 }`}
               >
-                <Send className="w-4 h-4" />
-                Publishing Room
+                <BookOpen className="w-4 h-4 text-amber-400" />
+                Guide
               </Link>
             </nav>
           )}
@@ -101,12 +116,12 @@ export const Navbar: React.FC = () => {
               {valReport.can_publish ? (
                 <>
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400">Ready to Publish</span>
+                  <span className="text-emerald-400 font-bold">Ready to Publish</span>
                 </>
               ) : (
                 <>
                   <AlertTriangle className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
-                  <span className="text-rose-300">
+                  <span className="text-rose-300 font-bold">
                     {valReport.summary.blocking} Blocker{valReport.summary.blocking > 1 ? 's' : ''}
                   </span>
                 </>
@@ -114,20 +129,20 @@ export const Navbar: React.FC = () => {
             </Link>
           )}
 
-          {/* User Profile & Quick Switch */}
+          {/* User Profile & Role Badges */}
           {user ? (
-            <div className="flex items-center gap-3 bg-slate-950/80 border border-slate-800 rounded-lg px-3 py-1.5">
+            <div className="flex items-center gap-3 bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-1.5">
               <div className="flex flex-col text-right">
                 <span className="text-xs font-medium text-slate-200">{user.email}</span>
                 <div className="flex items-center justify-end gap-1.5 mt-0.5">
                   <span
-                    className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.2 rounded tracking-wide uppercase ${
+                    className={`inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full tracking-wide uppercase ${
                       isAdmin
-                        ? 'bg-purple-950 text-purple-300 border border-purple-800/60'
-                        : 'bg-blue-950 text-blue-300 border border-blue-800/60'
+                        ? 'bg-purple-950 text-purple-300 border border-purple-700/80 shadow-xs'
+                        : 'bg-blue-950 text-blue-300 border border-blue-700/80 shadow-xs'
                     }`}
                   >
-                    {isAdmin ? <Shield className="w-3 h-3" /> : <UserCheck className="w-3 h-3" />}
+                    {isAdmin ? <Shield className="w-3 h-3 text-purple-400" /> : <UserCheck className="w-3 h-3 text-blue-400" />}
                     {user.role}
                   </span>
 

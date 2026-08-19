@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Sparkles, Filter, X } from 'lucide-react';
 import { CATEGORIES } from '../reference/reference';
-import { api, ApiError } from '../api/client';
+import { api } from '../api/client';
 import { ViewerImage } from '../components/ViewerImage';
 
 export const ViewerSearchPage: React.FC = () => {
@@ -16,6 +16,11 @@ export const ViewerSearchPage: React.FC = () => {
   const querySec = searchParams.get('section') || '';
 
   const [searchTerm, setSearchTerm] = useState(queryQ);
+
+  // Sync search input state if URL param changes
+  useEffect(() => {
+    setSearchTerm(queryQ);
+  }, [queryQ]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,12 +37,16 @@ export const ViewerSearchPage: React.FC = () => {
     setSearchParams(newParams);
   };
 
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setSearchParams(new URLSearchParams());
+  };
+
   // Fetch search results from public published endpoint (NO admin, NO auth)
   const {
     data: searchData,
     isLoading,
     isError,
-    error,
   } = useQuery({
     queryKey: ['catalogSearch', queryQ, queryCat, queryLang, querySec],
     queryFn: () =>
@@ -50,6 +59,7 @@ export const ViewerSearchPage: React.FC = () => {
   });
 
   const activeFiltersCount = [queryCat, queryLang, querySec].filter(Boolean).length;
+  const isFilteredOrSearched = activeFiltersCount > 0 || queryQ.length > 0;
 
   return (
     <motion.div
@@ -59,7 +69,9 @@ export const ViewerSearchPage: React.FC = () => {
     >
       {/* Header & Search Bar */}
       <div className="space-y-4 max-w-3xl">
-        <h1 className="text-3xl font-black text-slate-100 tracking-tight">Explore & Search Stories</h1>
+        <h1 className="text-3xl font-black text-slate-100 tracking-tight">
+          {isFilteredOrSearched ? 'Explore & Search Stories' : 'Explore all published stories'}
+        </h1>
         <p className="text-xs text-slate-400">
           Find your favorite kids shows, songs, and bilingual stories from the published catalogue.
         </p>
@@ -96,11 +108,11 @@ export const ViewerSearchPage: React.FC = () => {
             )}
           </div>
 
-          {activeFiltersCount > 0 && (
+          {isFilteredOrSearched && (
             <button
               type="button"
-              onClick={() => setSearchParams(new URLSearchParams())}
-              className="text-xs text-slate-400 hover:text-amber-300 flex items-center gap-1 font-medium"
+              onClick={handleClearFilters}
+              className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 font-bold transition-colors"
             >
               <X className="w-3.5 h-3.5" /> Clear Filters
             </button>
@@ -108,7 +120,7 @@ export const ViewerSearchPage: React.FC = () => {
         </div>
 
         {/* Language selector toggle */}
-        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-800/80">
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/80">
           <span className="text-xs font-medium text-slate-400 mr-2">Language:</span>
           <button
             type="button"
@@ -146,7 +158,19 @@ export const ViewerSearchPage: React.FC = () => {
         </div>
 
         {/* Category Pills */}
-        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-800/80 max-h-32 overflow-y-auto">
+        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-800/80">
+          <span className="text-xs font-medium text-slate-400 mr-1">Categories:</span>
+          <button
+            type="button"
+            onClick={() => setFilter('category', '')}
+            className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+              !queryCat
+                ? 'bg-amber-500 text-slate-950 font-bold shadow-md'
+                : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-slate-200'
+            }`}
+          >
+            All Categories
+          </button>
           {CATEGORIES.map((cat) => {
             const isSelected = queryCat === cat;
             return (
@@ -175,31 +199,46 @@ export const ViewerSearchPage: React.FC = () => {
           ))}
         </div>
       ) : isError ? (
-        <div className="p-8 bg-rose-950/80 border border-rose-800 rounded-3xl text-center text-xs text-rose-300">
-          Failed to search catalogue: {error instanceof ApiError ? error.detail : 'Search failed.'}
-        </div>
-      ) : searchData && searchData.results.length === 0 ? (
-        /* Friendly Empty State */
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center space-y-4 max-w-lg mx-auto">
+        /* CASE A — Catalogue not published yet */
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center space-y-4 max-w-lg mx-auto shadow-2xl">
           <div className="w-16 h-16 rounded-full bg-amber-950/80 border border-amber-800/80 text-amber-400 flex items-center justify-center mx-auto shadow-xl">
             <Sparkles className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-bold text-slate-200">No stories found</h3>
+          <h3 className="text-xl font-extrabold text-slate-100">Catalogue not published</h3>
           <p className="text-xs text-slate-400 leading-relaxed">
-            We couldn&apos;t find any stories matching your search or filters. Try choosing a different category or clear filters to see all published content.
+            The viewer will show published stories after an Admin publishes the catalogue from the CMS.
+          </p>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <Link
+              to="/publish"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-colors"
+            >
+              Open CMS Publishing Room &rarr;
+            </Link>
+          </div>
+        </div>
+      ) : searchData && searchData.results.length === 0 ? (
+        /* CASE B — Catalogue published but search/filter returned zero results */
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center space-y-4 max-w-lg mx-auto shadow-xl">
+          <div className="w-16 h-16 rounded-full bg-slate-950 border border-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+            <Search className="w-8 h-8 text-amber-400" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-100">No stories found</h3>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Try another search or remove one of your filters to see all available published stories.
           </p>
           <button
             type="button"
-            onClick={() => setSearchParams(new URLSearchParams())}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-colors"
+            onClick={handleClearFilters}
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-colors"
           >
-            Show All Published Stories
+            Clear Filters
           </button>
         </div>
       ) : searchData ? (
         <div className="space-y-6">
           <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
-            <span>Found {searchData.results.length} show(s)</span>
+            <span>Showing {searchData.results.length} published show(s)</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
@@ -212,17 +251,25 @@ export const ViewerSearchPage: React.FC = () => {
                   key={show.slug}
                   whileHover={{ scale: 1.04 }}
                   transition={{ duration: 0.2 }}
-                  className="group"
+                  className="group relative"
                 >
                   <Link to={`/viewer/shows/${show.slug}`} className="block space-y-2">
-                    {/* Poster Artwork (2:3 aspect ratio) */}
-                    <ViewerImage
-                      src={posterUrl}
-                      alt={show.title}
-                      kind="poster"
-                      fallbackTitle={show.title}
-                      className="w-full shadow-lg group-hover:border-amber-500/50 transition-colors"
-                    />
+                    {/* Poster Artwork (2:3 aspect ratio) with hover badge */}
+                    <div className="relative overflow-hidden rounded-2xl">
+                      <ViewerImage
+                        src={posterUrl}
+                        alt={show.title}
+                        kind="poster"
+                        fallbackTitle={show.title}
+                        className="w-full shadow-lg group-hover:border-amber-500/50 transition-colors"
+                      />
+                      {/* Hover Overlay Badge */}
+                      <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="bg-amber-500 text-slate-950 text-[11px] font-black px-3 py-1 rounded-full shadow-lg">
+                          Explore Episodes
+                        </span>
+                      </div>
+                    </div>
 
                     {/* Title & Info */}
                     <div className="space-y-1">
