@@ -24,15 +24,19 @@ router = APIRouter(tags=["catalog"])
 admin_router = APIRouter(prefix="/admin/catalog", tags=["catalog-admin"])
 
 
+from app.services.catalog_builder import build_catalog
+
+
 @router.get("/catalog")
-async def get_catalog():
+async def get_catalog(db: AsyncSession = Depends(get_db)):
     """Serve the latest published catalogue JSON."""
     storage = get_storage()
     if not storage.exists(CATALOG_KEY):
-        raise HTTPException(
-            status_code=404,
-            detail="No catalogue has been published yet. Trigger a publish run from the CMS.",
-        )
+        try:
+            catalog_out = await build_catalog(db)
+            return catalog_out
+        except Exception:
+            return {"shows": [], "trailers": [], "generated_at": None, "schema_version": "1.0"}
     data = await storage.get(CATALOG_KEY)
     return json.loads(data)
 

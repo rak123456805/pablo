@@ -46,9 +46,9 @@ def create_app() -> FastAPI:
 
     # Route alias for /catalog at root level as well as /api/v1/catalog
     @app.get("/catalog", tags=["catalog"])
-    async def get_catalog_root():
+    async def get_catalog_root(db: AsyncSession = Depends(get_db)):
         from app.api.v1.catalog import get_catalog
-        return await get_catalog()
+        return await get_catalog(db)
 
     @app.get("/health", tags=["health"])
     async def health(db: AsyncSession = Depends(get_db)):
